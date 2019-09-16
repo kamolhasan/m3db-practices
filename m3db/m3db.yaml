@@ -1,0 +1,37 @@
+apiVersion: operator.m3db.io/v1alpha1
+kind: M3DBCluster
+metadata:
+  name: simple-cluster
+  namespace: m3db 
+spec:
+  image: quay.io/m3db/m3dbnode:latest
+  replicationFactor: 3
+  numberOfShards: 16
+  etcdEndpoints:
+  - http://etcd-0.etcd.m3db.svc:2379
+  - http://etcd-1.etcd.m3db.svc:2379
+  - http://etcd-2.etcd.m3db.svc:2379
+  isolationGroups:
+  - name: group-1
+    numInstances: 1
+    nodeAffinityTerms:
+    - key: failure-domain.beta.kubernetes.io/zone
+      values:
+      - <zone-a>
+  - name: group-2
+    numInstances: 1
+    nodeAffinityTerms:
+    - key: failure-domain.beta.kubernetes.io/zone
+      values:
+      - <zone-b>
+  - name: group-3
+    numInstances: 1
+    nodeAffinityTerms:
+    - key: failure-domain.beta.kubernetes.io/zone
+      values:
+      - <zone-c>
+  podIdentityConfig:
+    sources: []
+  namespaces:
+    - name: metrics-10s:2d
+      preset: 10s:2d

@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  labels:
+    app: prometheus-demo
+  namespace: demo  
+data:
+  prometheus.yml: |-
+    global:
+      scrape_interval: 30s
+      scrape_timeout: 10s
+    scrape_configs:
+    - job_name: 'web-server'
+      static_configs:
+      - targets: ['demo-server.demo.svc:8080']
+    remote_read:
+    - url: "http://m3coordinator.m3db.svc:7201/api/v1/prom/remote/read"
+      # To test reading even when local Prometheus has the data
+      read_recent: true
+    remote_write:
+    - url: "http://m3coordinator.m3db.svc:7201/api/v1/prom/remote/write"
+      write_relabel_configs:
+      - target_label: metrics_storage
+        replacement: m3db_remote
