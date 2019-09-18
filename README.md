@@ -5,5 +5,6 @@
 - Deploy m3db cluster (storage nodes)
 - Deploy m3aggregator 
 - Deploy m3coordinator 
+- Deploy m3query 
 - Deploy prometheus exporter 
 - Deploy prometheus
