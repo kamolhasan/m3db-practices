@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: m3query
+  namespace: m3db
+  labels:
+    app: m3query
+spec:
+  selector:
+    app: m3query
+  ports:
+    - port: 7201
+      protocol: TCP
+      name: client
+    - port: 7203
+      protocol: TCP
+      name: metric
+  type: ClusterIP
+---
+# Source: m3db-operator/templates/stateful_set.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: m3query
+  namespace: m3db
+spec:
+  serviceName: m3query
+  replicas: 3
+  selector:
+    matchLabels:
+      app: m3query
+  template:
+    metadata:
+      labels:
+        app: m3query
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: cloud.google.com/gke-nodepool
+                    operator: In
+                    values:
+                      - m3db-pool
+      tolerations:
+        - key: "m3db"
+          operator: "Equal"
+          value: "true"
+          effect: "NoSchedule"
+      containers:
+        - name: m3query
+          image: quay.io/m3/m3query:v0.10.2
+          command:
+            - m3query
+          args:
+            - "-f"
+            - "/etc/m3/m3query.yaml"
+          ports:
+            - containerPort: 7201
+              name: client
+              protocol: TCP
+            - containerPort: 7203
+              name: metric
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /etc/m3/
+
+          resources:
+            limits:
+              memory: "8Gi"
+            requests:
+              memory: "4Gi"
+              cpu: "1.5"
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 420
+            name: m3query-config
