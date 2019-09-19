@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-exporter
+  namespace: demo
+  labels:
+    app: metrics-exporter
+spec:
+  selector:
+    app: metrics-exporter
+  ports:
+    - port: 8080
+      protocol: TCP
+      name: client
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: metrics-exporter
+  namespace: demo
+spec:
+  serviceName: metrics-exporter
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-exporter
+  template:
+    metadata:
+      labels:
+        app: metrics-exporter
+    spec:
+      containers:
+        - name: metric-exporter
+          image: kamolhasan/prometheus-metrics-exporter:test_linux_amd64
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 200m
+          args:
+            - "-v=10"
+            - "--metrics-exporter.interval=1s"
+            - "--nums-of-parallel-req=50"
+            - "--metrics-exporter.url=https://appscode.ninja/searchlight/write/api/v1/prom/remote/write"
+            - "--metrics-exporter.license=****"
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name

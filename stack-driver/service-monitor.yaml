@@ -1,0 +1,59 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: gitea-svc-monitor
+  labels:
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gitea
+  endpoints:
+    - port: gitea-http
+  namespaceSelector:
+    any: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: m3db-node-monitor
+  labels:
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      operator.m3db.io/cluster: simple-cluster
+  endpoints:
+    - port: debug
+  namespaceSelector:
+    any: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: m3coordinator-monitor
+  labels:
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: m3coordinator
+  endpoints:
+    - port: metric
+  namespaceSelector:
+    any: true
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: m3query-monitor
+  labels:
+    monitoring: enabled
+spec:
+  selector:
+    matchLabels:
+      app: m3query
+  endpoints:
+    - port: metric
+  namespaceSelector:
+    any: true
